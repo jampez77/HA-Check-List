@@ -1,0 +1,14 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Service is already configured"
+        },
+        "step": {
+            "user": {
+                "description": "Do you want to configure the check list?",
+                "title": "Check List"
+            }
+        }
+    },
+    "title": "Check List"
+}

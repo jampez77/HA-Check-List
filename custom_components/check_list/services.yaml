@@ -1,0 +1,36 @@
+add_item:
+  name: Add item
+  description: Add an item to the check list.
+  fields:
+    name:
+      name: Name
+      description: The name of the item to add.
+      required: true
+      example: Beer
+      selector:
+        text:
+
+complete_item:
+  name: Complete item
+  description: Mark an item as completed in the check list.
+  fields:
+    name:
+      name: Name
+      description: The name of the item to mark as completed (without removing).
+      required: true
+      example: Beer
+      selector:
+        text:
+
+incomplete_item:
+  description: Marks an item as incomplete in the check list.
+  fields:
+    name:
+      description: The name of the item to mark as incomplete.
+      example: Beer
+
+complete_all:
+  description: Marks all items as completed in the check list. It does not remove the items.
+
+incomplete_all:
+  description: Marks all items as incomplete in the check list.
