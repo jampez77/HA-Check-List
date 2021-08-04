@@ -233,14 +233,14 @@ class CheckData:
     async def async_clear_completed(self):
         """Clear completed items."""
         self.items = [itm for itm in self.items if not itm["complete"]]
+        await self.hass.async_add_executor_job(self.save)
         self.hass.bus.async_fire(
             EVENT, {"action": "clear_completed", "items": self.items}
         )
-        await self.hass.async_add_executor_job(self.save)
 
     async def async_list_items(self):
-        self.hass.bus.async_fire(EVENT, {"action": "list_items", "items": self.items})
         await self.hass.async_add_executor_job(self.save)
+        self.hass.bus.async_fire(EVENT, {"action": "list_items", "items": self.items})
         return self.items
 
     async def async_update_list(self, info):
