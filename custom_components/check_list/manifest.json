@@ -2,7 +2,7 @@
   "domain": "check_list",
   "name": "Check List",
   "documentation": "https://github.com/jampez77/HA-Check-List",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "dependencies": ["http"],
   "codeowners": [],
   "config_flow": true,

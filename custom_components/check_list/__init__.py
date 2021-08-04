@@ -214,6 +214,7 @@ class CheckData:
         }
         self.items.append(item)
         await self.hass.async_add_executor_job(self.save)
+        self.hass.bus.async_fire(EVENT, {"action": "add", "item": item})
         return item
 
     async def async_update(self, item_id, info):
@@ -226,11 +227,15 @@ class CheckData:
         info = ITEM_UPDATE_SCHEMA(info)
         item.update(info)
         await self.hass.async_add_executor_job(self.save)
+        self.hass.bus.async_fire(EVENT, {"action": "update", "item": item})
         return item
 
     async def async_clear_completed(self):
         """Clear completed items."""
         self.items = [itm for itm in self.items if not itm["complete"]]
+        self.hass.bus.async_fire(
+            EVENT, {"action": "clear_completed", "items": self.items}
+        )
         await self.hass.async_add_executor_job(self.save)
 
     async def async_list_items(self):
@@ -243,6 +248,7 @@ class CheckData:
         for item in self.items:
             item.update(info)
         await self.hass.async_add_executor_job(self.save)
+        self.hass.bus.async_fire(EVENT, {"action": "update_list", "items": self.items})
         return self.items
 
     @callback
@@ -269,6 +275,7 @@ class CheckData:
             new_items.append(all_items_mapping[key])
         self.items = new_items
         self.hass.async_add_executor_job(self.save)
+        self.hass.bus.async_fire(EVENT, {"action": "reorder", "items": self.items})
 
     async def async_load(self):
         """Load items."""
