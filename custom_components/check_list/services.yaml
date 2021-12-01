@@ -9,6 +9,13 @@ add_item:
       example: Beer
       selector:
         text:
+    type:
+      name: Type
+      description: The type of item to add.
+      required: false
+      example: announce
+      selector:
+        text:
 
 complete_item:
   name: Complete item

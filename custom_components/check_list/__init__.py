@@ -15,12 +15,13 @@ from homeassistant.util.json import load_json, save_json
 from .const import DOMAIN
 
 ATTR_NAME = "name"
+ATTR_TYPE = "type"
 ATTR_COMPLETE = "complete"
 
 _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = vol.Schema({DOMAIN: {}}, extra=vol.ALLOW_EXTRA)
 EVENT = "check_list_updated"
-ITEM_UPDATE_SCHEMA = vol.Schema({ATTR_COMPLETE: bool, ATTR_NAME: str})
+ITEM_UPDATE_SCHEMA = vol.Schema({ATTR_COMPLETE: bool, ATTR_NAME: str, ATTR_TYPE: str})
 PERSISTENCE = ".check_list.json"
 
 SERVICE_ADD_ITEM = "add_item"
@@ -30,7 +31,12 @@ SERVICE_CLEAR_COMPLETE = "clear_complete"
 SERVICE_INCOMPLETE_ITEM = "incomplete_item"
 SERVICE_COMPLETE_ALL = "complete_all"
 SERVICE_INCOMPLETE_ALL = "incomplete_all"
-SERVICE_ITEM_SCHEMA = vol.Schema({vol.Required(ATTR_NAME): vol.Any(None, cv.string)})
+SERVICE_ITEM_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_NAME): vol.Any(None, cv.string),
+        vol.Optional(ATTR_TYPE): vol.Any(None, cv.string),
+    }
+)
 SERVICE_LIST_SCHEMA = vol.Schema({})
 
 WS_TYPE_SHOPPING_LIST_ITEMS = "check_list/items"
@@ -82,13 +88,15 @@ async def async_setup_entry(hass, config_entry):
         """Add an item with `name`."""
         data = hass.data[DOMAIN]
         name = call.data.get(ATTR_NAME)
+        type = call.data.get(ATTR_TYPE)
         if name is not None:
-            await data.async_add(name)
+            await data.async_add(name, type)
 
     async def complete_item_service(call):
         """Mark the item provided via `name` as completed."""
         data = hass.data[DOMAIN]
         name = call.data.get(ATTR_NAME)
+        type = call.data.get(ATTR_TYPE)
         if name is None:
             return
         try:
@@ -96,7 +104,9 @@ async def async_setup_entry(hass, config_entry):
         except IndexError:
             _LOGGER.error("Removing of item failed: %s cannot be found", name)
         else:
-            await data.async_update(item["id"], {"name": name, "complete": True})
+            await data.async_update(
+                item["id"], {"name": name, "type": type, "complete": True}
+            )
 
     async def clear_complete_service(call):
         """Handle clearing check_list items."""
@@ -109,6 +119,7 @@ async def async_setup_entry(hass, config_entry):
         """Mark the item provided via `name` as incomplete."""
         data = hass.data[DOMAIN]
         name = call.data.get(ATTR_NAME)
+        type = call.data.get(ATTR_TYPE)
         if name is None:
             return
         try:
@@ -116,7 +127,9 @@ async def async_setup_entry(hass, config_entry):
         except IndexError:
             _LOGGER.error("Restoring of item failed: %s cannot be found", name)
         else:
-            await data.async_update(item["id"], {"name": name, "complete": False})
+            await data.async_update(
+                item["id"], {"name": name, "type": type, "complete": False}
+            )
 
     async def complete_all_service(call):
         """Mark all items in the list as complete."""
@@ -204,10 +217,11 @@ class CheckData:
         self.hass = hass
         self.items = []
 
-    async def async_add(self, name):
+    async def async_add(self, name, type):
         """Add a check list item."""
         item = {
             "name": name,
+            "type": type,
             "id": uuid.uuid4().hex,
             "complete": False,
             "index": len(self.items),
@@ -332,7 +346,9 @@ class CreateCheckListItemView(http.HomeAssistantView):
     @RequestDataValidator(vol.Schema({vol.Required("name"): str}))
     async def post(self, request, data):
         """Create a new check list item."""
-        item = await request.app["hass"].data[DOMAIN].async_add(data["name"])
+        item = (
+            await request.app["hass"].data[DOMAIN].async_add(data["name"], data["type"])
+        )
         request.app["hass"].bus.async_fire(EVENT)
         return self.json(item)
 
@@ -362,7 +378,7 @@ def websocket_handle_items(hass, connection, msg):
 @websocket_api.async_response
 async def websocket_handle_add(hass, connection, msg):
     """Handle add item to check_list."""
-    item = await hass.data[DOMAIN].async_add(msg["name"])
+    item = await hass.data[DOMAIN].async_add(msg["name"], msg["type"])
     hass.bus.async_fire(EVENT, {"action": "add", "item": item})
     connection.send_message(websocket_api.result_message(msg["id"], item))
 
