@@ -1,4 +1,5 @@
 """Support to manage a check list."""
+from http import HTTPStatus
 import logging
 import uuid
 
@@ -7,7 +8,6 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.components import http, websocket_api
 from homeassistant.components.http.data_validator import RequestDataValidator
-from homeassistant.const import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
 from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
 from homeassistant.util.json import load_json, save_json
@@ -332,9 +332,9 @@ class UpdateCheckListItemView(http.HomeAssistantView):
             request.app["hass"].bus.async_fire(EVENT)
             return self.json(item)
         except KeyError:
-            return self.json_message("Item not found", HTTP_NOT_FOUND)
+            return self.json_message("Item not found", HTTPStatus.NOT_FOUND)
         except vol.Invalid:
-            return self.json_message("Item not found", HTTP_BAD_REQUEST)
+            return self.json_message("Item not found", HTTPStatus.BAD_REQUEST)
 
 
 class CreateCheckListItemView(http.HomeAssistantView):
