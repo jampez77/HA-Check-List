@@ -3,6 +3,12 @@ This is a quick and dirty custom implementation of the HA shopping list integrat
 
 This is untested so use at your own risk.
 
+
+Enjoying this? Help me out with a :beers: or :coffee:!
+
+[![coffee](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/jampez77)
+
+
 ## Differences from Shopping List integration ##
 
 There is no UI interface with this implementation. It work entirely in the background.
